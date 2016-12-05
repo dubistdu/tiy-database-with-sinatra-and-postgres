@@ -17,6 +17,23 @@ get "/new_employee" do
   erb :new_employee
 end
 
+get "/employee" do
+  id = params["id"] # hash
+
+  database = PG.connect(dbname: 'tiy-database')
+  @employee = database.exec('SELECT * FROM employees where id = $1', [id]) # $1=placeholder
+
+  erb :employee
+end
+
+get "/search" do
+  # get the word query parameter from prams hash
+  database = PG.connect(dbname: "tiy-database")
+  word = params["word"]
+  @name_search = database.exec('SELECT * FROM employees where name like \'%$1\'%', [word])
+  erb :search
+end
+
 post "/create_employee" do
   name = params["name"]
   address = params["address"]
