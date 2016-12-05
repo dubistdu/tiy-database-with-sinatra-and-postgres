@@ -26,14 +26,6 @@ get "/employee" do
   erb :employee
 end
 
-get "/search" do
-  # get the word query parameter from prams hash
-  database = PG.connect(dbname: "tiy-database")
-  word = params["word"]
-  @name_search = database.exec('SELECT * FROM employees where name like \'%$1\'%', [word])
-  erb :search
-end
-
 post "/create_employee" do
   name = params["name"]
   address = params["address"]
@@ -48,3 +40,34 @@ post "/create_employee" do
 
   redirect to("/employees")
 end
+
+post "/search" do # in this case it can be either get do or post do
+  # get the word query parameter from prams hash
+  database = PG.connect(dbname: "tiy-database")
+  word = params["word"]
+
+  @name_search = database.exec("SELECT * FROM employees where name like $1", ["%#{word}%"])
+
+  erb :search
+end
+
+# Do you mind explaining this part again
+# ["%#{word}%"]
+# why it's not %$1%
+# but ["%#{word}%"]
+#
+# Because PG wants the %s to be part of what we are searching for
+# the `name` is `like` some value
+# It is the value that has the `%` as part of it
+# So we wrap the `%` around the word (edited)
+# Also when doing it that way, I got PG errors.
+# %$1%
+# The other way is:
+#
+# `@name_search = database.exec("SELECT * FROM employees where name like '%' || $1 || '%'", [word])`
+#
+# [8:51]
+# `||` in PG SQL is string concatenation, kinda like    `string + string` in Ruby.
+
+
+########## Question - what to do about up/ downcase when searching--
